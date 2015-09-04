@@ -10,8 +10,14 @@ var MARGINS = {
     left: 50
   };
 var COUNTRIES = {
-  main: "Afghanistan",
-  overlayOne: ''
+  mainCountry: {
+    country: "Afghanistan",
+    colors: ['red', 'blue']
+  },
+  overlayOne: {
+    country: 'Afghanistan',
+    colors: ['purple', 'green']
+  }
 }
 var MALE = true;
 var FEMALE = true;
@@ -67,44 +73,23 @@ d3.csv('./data.csv', function(data) {
     .attr('value', function(d) { return d })
     .text(function(d) {return d})
 
-  drawCountry(data, COUNTRIES.main);
+  drawCountry(data, COUNTRIES.mainCountry);
+  drawCountry(data, COUNTRIES.overlayOne);
 
-  function update(data, country) {
-    //TODO constants module? don't like tweaking global
-    country = country.replace(/[ -,]/g, '');
-    var prevCountry = COUNTRIES.main;
-    var maleLine = d3.select('.male-' + prevCountry);
-    var femaleLine = d3.select('.female-' + prevCountry);
-
-    maleLine.transition()
-      .attr('d', svgLine(data[country].male))
-      .attr('class', 'male-' + country)
-      .duration(750)
-      .ease('easeOutQuint');
-  
-
-    femaleLine.transition()
-      .attr('d', svgLine(data[country].female))
-      .attr('class', 'female-' + country)
-      .duration(750)
-      .ease('easeOutQuint');
-
-    COUNTRIES.main = country;
-  }
 
   //event handlers
   menus.on('change', function() {
-    update(data, this.value);
+    updateChart(data, this.value, this.id);
   });
 
   maleCheck.on('change', function() {
     MALE = !MALE;
-    updateChecked(data, COUNTRIES.main, 'male')
+    updateChecked(data, COUNTRIES.mainCountry.country, 'male')
   });
 
   femaleCheck.on('change', function() {
     FEMALE = !FEMALE;
-    updateChecked(data, COUNTRIES.main, 'female');
+    updateChecked(data, COUNTRIES.mainCountry.country, 'female');
   });
 });
 
@@ -146,44 +131,70 @@ function sortByLocationNameThenAgeGroup(dataset, ageGroup, metric) {
   return sorted;
 }
 
+function updateChart(data, country, lines) {
+  //TODO constants module? don't like tweaking global
+  country = country.replace(/[ -,]/g, '');
+  var prevCountry = COUNTRIES[lines].country;
+  var maleLine = d3.select('.male-' + prevCountry);
+  var femaleLine = d3.select('.female-' + prevCountry);
+
+  maleLine.transition()
+    .attr('d', svgLine(data[country].male))
+    .attr('class', 'male-' + country)
+    .duration(750)
+    .ease('easeOutQuint');
+
+
+  femaleLine.transition()
+    .attr('d', svgLine(data[country].female))
+    .attr('class', 'female-' + country)
+    .duration(750)
+    .ease('easeOutQuint');
+
+  COUNTRIES[lines].country = country;
+}
+
 function updateChecked(data, country, gender) {
     var maleLine = d3.select('.male-' + country);
     var femaleLine = d3.select('.female-' + country);
     if (gender === 'male') {
       if (MALE && !maleLine.node()) {
-        drawLine(data, country, 'male');
+        drawLine(data, country, 'male', 'blue');
       } else {
         maleLine.remove();
       }  
     } else {
       if (FEMALE && !femaleLine.node()) {
         console.log('HIT')
-        drawLine(data, country, 'female');
+        drawLine(data, country, 'female', 'red');
       }else {
         femaleLine.remove();
       }
     }
 }
 
-function drawLine(data, country, gender) {
-  country = country.replace(/[ -,]/g, '')
+function drawLine(data, country, gender, strokeColor) {
+  var countryName = country.country.replace(/[ -,]/g, '')
   var chart = d3.select('#display');
-  var strokeColor = gender === 'male' ? 'blue' : 'red';
 
   var line = chart.append('path')
-    .attr('d', svgLine(data[country][gender]))
+    .attr('d', svgLine(data[countryName][gender]))
     .attr('stroke-width', 2)
     .attr('stroke', strokeColor)
     .attr('fill', 'none')
     .attr('transform', 'translate(' + MARGINS.left + ')')
-    .attr('class', gender + '-' + country);
+    .attr('class', gender + '-' + countryName);
 
   return line;
 }
 
 function drawCountry(data, country) {
-  drawLine(data, country, 'female');
-  drawLine(data, country, 'male');
+  console.log(country);
+  var countryName = country.country;
+  var colors = country.colors;
+  console.log(country, colors);
+  drawLine(data, country, 'female', colors[1]);
+  drawLine(data, country, 'male', colors[0]);
 }
 
 function testCircle(){
