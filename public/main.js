@@ -60,8 +60,8 @@ chart.append('g').call(yAxis)
 
 
 var menus = d3.selectAll('select');
-var maleCheck = d3.select('#male-check');
-var femaleCheck = d3.select('#female-check');
+var checkboxes = d3.selectAll('input[type=checkbox]')
+console.log(checkboxes)
 
 d3.csv('./data.csv', function(data) {
   data = sortByLocationNameThenAgeGroup(data, "20+ yrs, age-standardized", 'obese');
@@ -82,15 +82,16 @@ d3.csv('./data.csv', function(data) {
     updateChart(data, this.value, this.id);
   });
 
-  maleCheck.on('change', function() {
+  checkboxes.on('change', function() {
+    console.log(this.checked)
     MALE = !MALE;
-    updateChecked(data, COUNTRIES.mainCountry.country, 'male')
+    updateChecked(data, COUNTRIES[this.name], this.value, this.checked)
   });
 
-  femaleCheck.on('change', function() {
-    FEMALE = !FEMALE;
-    updateChecked(data, COUNTRIES.mainCountry.country, 'female');
-  });
+  // femaleCheck.on('change', function() {
+  //   FEMALE = !FEMALE;
+  //   updateChecked(data, COUNTRIES[this.name], 'female', this.checked);
+  // });
 });
 
 //helpers
@@ -133,6 +134,7 @@ function sortByLocationNameThenAgeGroup(dataset, ageGroup, metric) {
 
 function updateChart(data, country, lines) {
   //TODO constants module? don't like tweaking global
+
   country = country.replace(/[ -,]/g, '');
   var prevCountry = COUNTRIES[lines].country;
   var maleLine = d3.select('.male-' + prevCountry);
@@ -154,19 +156,23 @@ function updateChart(data, country, lines) {
   COUNTRIES[lines].country = country;
 }
 
-function updateChecked(data, country, gender) {
-    var maleLine = d3.select('.male-' + country);
-    var femaleLine = d3.select('.female-' + country);
+function updateChecked(data, country, gender, checked) {
+    var countryName = country.country;
+    var colors = country.colors;
+    console.log('IN UPDATE CHECKED', country);
+
+    var maleLine = d3.select('.male-' + countryName);
+    var femaleLine = d3.select('.female-' + countryName);
     if (gender === 'male') {
-      if (MALE && !maleLine.node()) {
-        drawLine(data, country, 'male', 'blue');
+      if (checked && !maleLine.node()) {
+        drawLine(data, country, 'male', colors[0]);
       } else {
         maleLine.remove();
       }  
     } else {
-      if (FEMALE && !femaleLine.node()) {
+      if (checked && !femaleLine.node()) {
         console.log('HIT')
-        drawLine(data, country, 'female', 'red');
+        drawLine(data, country, 'female', colors[1]);
       }else {
         femaleLine.remove();
       }
