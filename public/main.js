@@ -17,6 +17,10 @@ var COUNTRIES = {
   overlayOne: {
     country: 'Afghanistan',
     colors: ['purple', 'green']
+  },
+  overlayTwo: {
+    country: 'Afghanistan',
+    colors: ['yellow', 'brown']
   }
 }
 var MALE = true;
@@ -73,8 +77,9 @@ d3.csv('./data.csv', function(data) {
     .attr('value', function(d) { return d })
     .text(function(d) {return d})
 
-  drawCountry(data, COUNTRIES.mainCountry);
-  drawCountry(data, COUNTRIES.overlayOne);
+  drawCountry(data, COUNTRIES.mainCountry, 'mainCountry');
+  drawCountry(data, COUNTRIES.overlayOne, 'overlayOne');
+  drawCountry(data, COUNTRIES.overlayTwo, 'overlayTwo');
 
 
   //event handlers
@@ -85,13 +90,8 @@ d3.csv('./data.csv', function(data) {
   checkboxes.on('change', function() {
     console.log(this.checked)
     MALE = !MALE;
-    updateChecked(data, COUNTRIES[this.name], this.value, this.checked)
+    updateChecked(data, COUNTRIES[this.name], this.value, this.checked, this.name)
   });
-
-  // femaleCheck.on('change', function() {
-  //   FEMALE = !FEMALE;
-  //   updateChecked(data, COUNTRIES[this.name], 'female', this.checked);
-  // });
 });
 
 //helpers
@@ -137,49 +137,49 @@ function updateChart(data, country, lines) {
 
   country = country.replace(/[ -,]/g, '');
   var prevCountry = COUNTRIES[lines].country;
-  var maleLine = d3.select('.male-' + prevCountry);
-  var femaleLine = d3.select('.female-' + prevCountry);
+  var maleLine = d3.select('.male-' + prevCountry + lines);
+  var femaleLine = d3.select('.female-' + prevCountry + lines);
 
   maleLine.transition()
     .attr('d', svgLine(data[country].male))
-    .attr('class', 'male-' + country)
+    .attr('class', 'male-' + country + lines)
     .duration(750)
     .ease('easeOutQuint');
 
 
   femaleLine.transition()
     .attr('d', svgLine(data[country].female))
-    .attr('class', 'female-' + country)
+    .attr('class', 'female-' + country + lines)
     .duration(750)
     .ease('easeOutQuint');
 
   COUNTRIES[lines].country = country;
 }
 
-function updateChecked(data, country, gender, checked) {
+function updateChecked(data, country, gender, checked, lines) {
     var countryName = country.country;
     var colors = country.colors;
     console.log('IN UPDATE CHECKED', country);
 
-    var maleLine = d3.select('.male-' + countryName);
-    var femaleLine = d3.select('.female-' + countryName);
+    var maleLine = d3.select('.male-' + countryName + lines);
+    var femaleLine = d3.select('.female-' + countryName + lines);
     if (gender === 'male') {
       if (checked && !maleLine.node()) {
-        drawLine(data, country, 'male', colors[0]);
+        drawLine(data, country, 'male', colors[0], lines);
       } else {
         maleLine.remove();
       }  
     } else {
       if (checked && !femaleLine.node()) {
         console.log('HIT')
-        drawLine(data, country, 'female', colors[1]);
+        drawLine(data, country, 'female', colors[1], lines);
       }else {
         femaleLine.remove();
       }
     }
 }
 
-function drawLine(data, country, gender, strokeColor) {
+function drawLine(data, country, gender, strokeColor, lines) {
   var countryName = country.country.replace(/[ -,]/g, '')
   var chart = d3.select('#display');
 
@@ -189,18 +189,18 @@ function drawLine(data, country, gender, strokeColor) {
     .attr('stroke', strokeColor)
     .attr('fill', 'none')
     .attr('transform', 'translate(' + MARGINS.left + ')')
-    .attr('class', gender + '-' + countryName);
+    .attr('class', gender + '-' + countryName + lines);
 
   return line;
 }
 
-function drawCountry(data, country) {
+function drawCountry(data, country, lines) {
   console.log(country);
   var countryName = country.country;
   var colors = country.colors;
   console.log(country, colors);
-  drawLine(data, country, 'female', colors[1]);
-  drawLine(data, country, 'male', colors[0]);
+  drawLine(data, country, 'female', colors[1], lines);
+  drawLine(data, country, 'male', colors[0], lines);
 }
 
 function testCircle(){
