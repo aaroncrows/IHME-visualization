@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ihme data visualization</title>
+</head>
+<style>
+  .male {
+    stroke: 2px;
+    fill: none;
+    stroke-color: blue;
+  }
+  .female {
+    stroke: 2px;
+    fill: none;
+    stroke-color: red;
+  }
+  svg {
+    background-color: pink;
+    border: 1px solid blue;
+  }
+
+  .axis path,
+  .axis line{
+    shape-rendering: crispEdges;
+    stroke: #000;
+    fill: none;
+  }
+</style>
+<body>
+  <div id="chart">
+    
+  </div>
+  <div id="control_wrapper"></div>
+    <div id="controls">
+      <select id="mainCountry"></select>
+      <input type="checkbox" id="male-check" data-country="mainCountry" name="mainCountry" value="male" checked>male</input>
+      <input type="checkbox" id="female-check" value="female" name="mainCountry" checked>female</input>
+    </div>
+    <div id="controls2">
+      <select id="overlayOne"></select>
+      <input type="checkbox" id="male-check" value="male" name="overlayOne" checked>male</input>
+      <input type="checkbox" id="female-check" value="female" name="overlayOne" checked>female</input>
+    </div>
+    <div id="controls3">
+      <select id="overlayTwo"></select>
+      <input type="checkbox" id="male-check" value="male" name="overlayTwo" checked>male</input>
+      <input type="checkbox" id="female-check" value="female" name="overlayTwo" checked>female</input>
+    </div>
+  </div>
+</body>
+<script src="./bundle.js"></script>
+</html>

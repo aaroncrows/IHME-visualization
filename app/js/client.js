@@ -1,6 +1,7 @@
 'use strict';
-
 //constants
+var d3 = require('d3');
+
 var HEIGHT = 500;
 var WIDTH = 800;
 var MARGINS = {
@@ -11,7 +12,7 @@ var MARGINS = {
   };
 var COUNTRIES = {
   mainCountry: {
-    country: "Afghanistan",
+    country: 'Afghanistan',
     colors: ['red', 'blue']
   },
   overlayOne: {
@@ -22,31 +23,29 @@ var COUNTRIES = {
     country: 'Afghanistan',
     colors: ['yellow', 'brown']
   }
-}
-var MALE = true;
-var FEMALE = true;
-var YEAR_STANDARD = 1989;
+};
 
 //scale
-var x = d3.scale.linear()
+var x = d3.time.scale()
           .range([0, (WIDTH - MARGINS.right - MARGINS.left)])
-          .domain([1990, 2013])
+          .domain([new Date(1990, 0, 1), new Date(2013, 0, 1)]);
+
 var y = d3.scale.linear()
       .range([(HEIGHT - MARGINS.bottom - MARGINS.top), 0])
-      .domain([0, 0.7])
+      .domain([0, 0.7]);
 
 //svg elements
 var svgLine = d3.svg.line()
-    .x(function(d) { 
-        return x(d.year);
-      })
-    .y(function(d) {
-        return y(d.mean);
-      });
+      .x(function(d) {
+          return x(new Date(d.year, 0, 1));
+        })
+      .y(function(d) {
+          return y(d.mean);
+        });
 
 var xAxis = d3.svg.axis()
       .scale(x)
-      .ticks(10)
+      .ticks(10);
 var yAxis = d3.svg.axis()
       .scale(y)
       .orient('left');
@@ -55,47 +54,55 @@ var chart = d3.select('#chart')
       .append('svg')
       .attr('height', HEIGHT)
       .attr('width', WIDTH)
-      .attr('id', 'display')
+      .attr('id', 'display');
 
 chart.append('g').call(xAxis)
-    .attr('transform', 'translate(' + MARGINS.left + ', ' + (HEIGHT - MARGINS.bottom) + ')');
+    .attr('transform', 'translate(' + MARGINS.left + ', ' +
+      (HEIGHT - MARGINS.bottom) + ')')
+    .attr('class', 'axis')
+    .selectAll('text')
+    .attr('y', 5)
+    .attr('x', 6)
+    .attr('dy', '.35em')
+    .attr('transform', 'rotate(45)')
+    .style('text-anchor', 'start');
+
 chart.append('g').call(yAxis)
+    .attr('class', 'axis')
     .attr('transform', 'translate(' + MARGINS.left + ', ' + MARGINS.top + ')');
 
-
 var menus = d3.selectAll('select');
-var checkboxes = d3.selectAll('input[type=checkbox]')
-console.log(checkboxes)
+var checkboxes = d3.selectAll('input[type=checkbox]');
+console.log(checkboxes);
 
 d3.csv('./data.csv', function(data) {
-  data = sortByLocationNameThenAgeGroup(data, "20+ yrs, age-standardized", 'obese');
+  var lines;
+
+  data = parseData(data, '20+ yrs, age-standardized', 'obese');
 
   menus.selectAll('option')
     .data(data.countryNames)
     .enter()
     .append('option')
-    .attr('value', function(d) { return d })
-    .text(function(d) {return d})
+    .attr('value', function(d) { return d; })
+    .text(function(d) {return d; });
 
   drawCountry(data, COUNTRIES.mainCountry, 'mainCountry');
   drawCountry(data, COUNTRIES.overlayOne, 'overlayOne');
   drawCountry(data, COUNTRIES.overlayTwo, 'overlayTwo');
 
-
-  //event handlers
   menus.on('change', function() {
     updateChart(data, this.value, this.id);
   });
 
   checkboxes.on('change', function() {
-    console.log(this.checked)
-    MALE = !MALE;
-    updateChecked(data, COUNTRIES[this.name], this.value, this.checked, this.name)
+    updateChecked(data, COUNTRIES[this.name], this.value,
+      this.checked, this.name);
   });
 });
 
 //helpers
-function sortByLocationNameThenAgeGroup(dataset, ageGroup, metric) {
+function parseData(dataset, ageGroup, metric) {
   var sorted = {};
   var countriesSeen = {};
   var maxMean = 0;
@@ -116,18 +123,18 @@ function sortByLocationNameThenAgeGroup(dataset, ageGroup, metric) {
       female: []
     };
 
-    //if (!sorted[currLocation][currAgeGroup]) sorted[currLocation][currAgeGroup] = [];
-    if(currAgeGroup === ageGroup && curr.sex != 'both' && curr.metric == metric) {
+    if (currAgeGroup === ageGroup && curr.sex != 'both' &&
+      curr.metric == metric) {
       sorted[classFriendlyLocation][curr.sex].push(curr);
       if (curr.mean > maxMean) maxMean = curr.mean;
 
       //creates array of country names
-      if(!countriesSeen[currLocation]) {
+      if (!countriesSeen[currLocation]) {
         sorted.countryNames.push(currLocation);
         countriesSeen[currLocation] = true;
       }
     }
-  };
+  }
   sorted.maxMean = maxMean;
   return sorted;
 }
@@ -146,7 +153,6 @@ function updateChart(data, country, lines) {
     .duration(750)
     .ease('easeOutQuint');
 
-
   femaleLine.transition()
     .attr('d', svgLine(data[country].female))
     .attr('class', 'female-' + country + lines)
@@ -157,30 +163,29 @@ function updateChart(data, country, lines) {
 }
 
 function updateChecked(data, country, gender, checked, lines) {
-    var countryName = country.country;
-    var colors = country.colors;
-    console.log('IN UPDATE CHECKED', country);
+  var countryName = country.country;
+  var colors = country.colors;
+  console.log('IN UPDATE CHECKED', country);
 
-    var maleLine = d3.select('.male-' + countryName + lines);
-    var femaleLine = d3.select('.female-' + countryName + lines);
-    if (gender === 'male') {
-      if (checked && !maleLine.node()) {
-        drawLine(data, country, 'male', colors[0], lines);
-      } else {
-        maleLine.remove();
-      }  
+  var maleLine = d3.select('.male-' + countryName + lines);
+  var femaleLine = d3.select('.female-' + countryName + lines);
+  if (gender === 'male') {
+    if (checked && !maleLine.node()) {
+      drawLine(data, country, 'male', colors[0], lines);
     } else {
-      if (checked && !femaleLine.node()) {
-        console.log('HIT')
-        drawLine(data, country, 'female', colors[1], lines);
-      }else {
-        femaleLine.remove();
-      }
+      maleLine.remove();
     }
+  } else {
+    if (checked && !femaleLine.node()) {
+      drawLine(data, country, 'female', colors[1], lines);
+    } else {
+      femaleLine.remove();
+    }
+  }
 }
 
 function drawLine(data, country, gender, strokeColor, lines) {
-  var countryName = country.country.replace(/[ -,]/g, '')
+  var countryName = country.country.replace(/[ -,]/g, '');
   var chart = d3.select('#display');
 
   var line = chart.append('path')
@@ -203,20 +208,19 @@ function drawCountry(data, country, lines) {
   drawLine(data, country, 'male', colors[0], lines);
 }
 
-function testCircle(){
+function testCircle() {
   var counter = 0;
 
   chart.append('circle')
       .attr('r', 10)
       .attr('cy', 0)
-      .attr('cx', 200)
+      .attr('cx', 200);
 
   setInterval(function() {
     chart.select('circle')
       .transition()
       .duration(1000)
-      .attr('transform', 'translate(0, ' + (HEIGHT) + ')')
-      //.attr('cy', counter);
+      .attr('transform', 'translate(0, ' + (HEIGHT) + ')');
 
     counter += 10;
   }, 1000);
@@ -228,7 +232,7 @@ function generateYears(start, end) {
 
   for (var i = 0; i < end; i++) {
     years.push(start + i);
-  };
+  }
 
   return years;
 }
