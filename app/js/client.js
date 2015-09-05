@@ -24,7 +24,7 @@ var COUNTRIES = {
     colors: ['red', 'blue']
   },
   secondCountry: {
-    country: 'Afghanistan',
+    country: 'UnitedStates',
     colors: ['purple', 'green']
   }
 };
@@ -43,8 +43,10 @@ d3.csv('./data.csv', function(data) {
     .attr('value', function(d) { return d; })
     .text(function(d) {return d; });
 
-  drawCountry(data[COUNTRIES.firstCountry.country], 'firstCountry');
-  drawCountry(data[COUNTRIES.secondCountry.country], 'secondCountry');
+  // drawCountry(data[COUNTRIES.firstCountry.country], 'firstCountry');
+  // drawCountry(data[COUNTRIES.secondCountry.country], 'secondCountry');
+  drawGender('male', data);
+  drawGender('female', data);
 
   menus.on('change', function() {
     updateChart(data, this.value, this.id);
@@ -104,12 +106,14 @@ function updateLine(gender, data, lines) {
 
 function updateChart(data, country, lines) {
   country = country.replace(/[ -,]/g, '');
-  data = data[country];
-
-  updateLine('male', data.male, lines);
-  updateLine('female', data.female, lines);
-
   COUNTRIES[lines].country = country;
+  //data = data[country];
+
+  updateLine('male', data[country].male, lines);
+  updateLine('female', data[country].female, lines);
+  updateArea(data[COUNTRIES.firstCountry.country], data[COUNTRIES.secondCountry.country], 'male')
+  updateArea(data[COUNTRIES.firstCountry.country], data[COUNTRIES.secondCountry.country], 'female')
+
 }
 
 function updateChecked(data, gender, checked, lines) {
@@ -117,21 +121,29 @@ function updateChecked(data, gender, checked, lines) {
   var femaleLines = d3.selectAll('.' + gender);
   var maleArea = d3.select('.area' + gender);
   var femaleArea = d3.select('.area' + gender);
+  console.log(maleLines, checked)
 
 
   if (gender === 'male') {
-    if (checked && !maleLines.node()) {
-      drawGender(gender, data);
+    if (checked) {
+      //drawGender(gender, data);
+      maleLines.attr('visibility', 'visible');
+      maleArea.attr('visibility', 'visible')
     } else {
-      maleLines.remove();
-      maleArea.remove();
+      // maleLines.remove();
+      maleLines.attr('visibility', 'hidden');
+      maleArea.attr('visibility', 'hidden');
     }
   } else {
-    if (checked && !femaleLines.node()) {
-      drawGender(gender, data);
+    if (checked) {
+      // drawGender(gender, data);
+      femaleLines.attr('visibility', 'visible');
+      femaleArea.attr('visibility', 'visible');
     } else {
-      femaleLines.remove();
-      femaleArea.remove();
+      femaleLines.attr('visibility', 'hidden');
+      femaleArea.attr('visibility', 'hidden');
+      // femaleLines.remove();
+      // femaleArea.remove();
     }
   }
 }
@@ -197,6 +209,37 @@ function drawArea(dataOne, dataTwo, gender) {
     .attr('fill', color)
     .attr('class', 'area' + gender)
 
+}
+
+function updateArea(dataOne, dataTwo, gender) {
+  var areaData = [];
+  var color = gender === 'male' ? 'rgba(80, 80, 255, .5)' : 'rgba(255, 80, 80, .5)';
+  var y0;
+  var y1;
+  var meanOne;
+  var meanTwo;
+  console.log('updateArea', dataOne, dataTwo)
+  for (var i = 0; i < dataOne[gender].length; i++) {
+    meanOne = dataOne[gender][i].mean;
+    meanTwo = dataTwo[gender][i].mean;
+
+    y0 = Math.min(meanOne, meanTwo);
+    y1 = Math.max(meanOne, meanTwo);
+
+    areaData.push({
+      y0: y0,
+      y1: y1,
+      x: dataOne[gender][i].year
+    })
+  }
+  console.log('IN UPDATE', areaData)
+  var area1 = d3.select('.area' + gender);
+    console.log(area1)
+
+    area1.transition()
+    .attr('d', area(areaData))
+    .duration(750)
+    .ease('easeOutQuint');
 }
 
 function testCircle() {
