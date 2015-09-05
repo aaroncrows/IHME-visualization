@@ -2,6 +2,14 @@
 //constants
 var d3 = require('d3');
 
+var init = require('./d3-init');
+var x = init.x;
+var y = init.y
+var svgLine = init.line;
+var area = init.area;
+
+init.init();
+
 var HEIGHT = 500;
 var WIDTH = 800;
 var MARGINS = {
@@ -20,71 +28,6 @@ var COUNTRIES = {
     colors: ['purple', 'green']
   }
 };
-
-//scale
-var x = d3.time.scale()
-          .range([0, (WIDTH - MARGINS.right - MARGINS.left)])
-          .domain([new Date(1990, 0, 1), new Date(2013, 0, 1)]);
-
-var y = d3.scale.linear()
-      .range([(HEIGHT - MARGINS.bottom - MARGINS.top), 0])
-      .domain([0, 0.7]);
-
-//svg elements
-var svgLine = d3.svg.line()
-      .x(function(d) {
-          return x(new Date(d.year, 0, 1));
-        })
-      .y(function(d) {
-          return y(d.mean);
-        });
-
-var area = d3.svg.area()
-      .x(function(d) {
-        console.log(d.x)
-        return x(new Date(d.x, 0, 1));
-      })
-      .y0(function(d) {
-        return y(d.y0);
-      })
-      .y1(function(d) {
-        console.log(d.y1)
-        return y(d.y1);
-      })
-
-var xAxis = d3.svg.axis()
-      .scale(x)
-      .ticks(10);
-var yAxis = d3.svg.axis()
-      .scale(y)
-      .orient('left');
-
-var chart = d3.select('#chart')
-      .append('svg')
-      .attr('height', HEIGHT)
-      .attr('width', WIDTH)
-      .attr('id', 'display');
-
-chart.append('g').call(xAxis)
-    .attr('transform', 'translate(' + MARGINS.left + ', ' +
-      (HEIGHT - MARGINS.bottom) + ')')
-    .attr('class', 'axis')
-    .selectAll('text')
-    .attr('y', 5)
-    .attr('x', 6)
-    .attr('dy', '.35em')
-    .attr('transform', 'rotate(45)')
-    .style('text-anchor', 'start');
-
-chart.append('g').call(yAxis)
-    .attr('class', 'axis')
-    .attr('transform', 'translate(' + MARGINS.left + ', ' + MARGINS.top + ')')
-    .append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 6)
-    .attr('dy', 7)
-    .style("text-anchor", "end")
-    .text("Mean");;
 
 var menus = d3.selectAll('select');
 var checkboxes = d3.selectAll('input[type=checkbox]');
@@ -172,23 +115,30 @@ function updateChart(data, country, lines) {
 function updateChecked(data, gender, checked, lines) {
   var maleLines = d3.selectAll('.' + gender);
   var femaleLines = d3.selectAll('.' + gender);
+  var maleArea = d3.select('.area' + gender);
+  var femaleArea = d3.select('.area' + gender);
+
+
   if (gender === 'male') {
     if (checked && !maleLines.node()) {
       drawGender(gender, data);
     } else {
       maleLines.remove();
+      maleArea.remove();
     }
   } else {
     if (checked && !femaleLines.node()) {
       drawGender(gender, data);
     } else {
       femaleLines.remove();
+      femaleArea.remove();
     }
   }
 }
 
 function drawLine(gender, data, lines) {
   var chart = d3.select('#display');
+  console.log(data);
   var strokeColor = gender === 'male' ? 'blue' : 'red';
 
   var line = chart.append('path')
@@ -219,7 +169,7 @@ function drawCountry(data, lines) {
 
 function drawArea(dataOne, dataTwo, gender) {
   var areaData = [];
-  var color = gender === 'male' ? 'blue' : 'red';
+  var color = gender === 'male' ? 'rgba(80, 80, 255, .5)' : 'rgba(255, 80, 80, .5)';
   var y0;
   var y1;
   var meanOne;
@@ -245,6 +195,7 @@ function drawArea(dataOne, dataTwo, gender) {
     .append('path')
     .attr('d', area(areaData))
     .attr('fill', color)
+    .attr('class', 'area' + gender)
 
 }
 
