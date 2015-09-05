@@ -19,14 +19,8 @@ var MARGINS = {
     left: 50
   };
 var COUNTRIES = {
-  firstCountry: {
-    country: 'Afghanistan',
-    colors: ['red', 'blue']
-  },
-  secondCountry: {
-    country: 'UnitedStates',
-    colors: ['purple', 'green']
-  }
+  firstCountry: 'Afghanistan',
+  secondCountry: 'UnitedStates'
 };
 
 var menus = d3.selectAll('select');
@@ -43,17 +37,14 @@ d3.csv('./data.csv', function(data) {
     .attr('value', function(d) { return d; })
     .text(function(d) {return d; });
 
-  // drawCountry(data[COUNTRIES.firstCountry.country], 'firstCountry');
-  // drawCountry(data[COUNTRIES.secondCountry.country], 'secondCountry');
-  drawGender('male', data);
-  drawGender('female', data);
+  drawChart(data)
 
   menus.on('change', function() {
     updateChart(data, this.value, this.id);
   });
 
   checkboxes.on('change', function() {
-    updateChecked(data, this.value, this.checked, this.name);
+    updateChecked(this.value, this.checked);
   });
 });
 
@@ -95,7 +86,7 @@ function parseData(dataset, ageGroup, metric) {
   return sorted;
 }
 
-function updateLine(gender, data, lines) {
+function updateLine(data, gender, lines) {
   var line = d3.select('.' + gender + '.' + lines)
     line.transition()
     .attr('d', svgLine(data))
@@ -104,84 +95,54 @@ function updateLine(gender, data, lines) {
     .ease('easeOutQuint');
 }
 
+
 function updateChart(data, country, lines) {
   country = country.replace(/[ -,]/g, '');
-  COUNTRIES[lines].country = country;
-  //data = data[country];
+  COUNTRIES[lines] = country;
 
-  updateLine('male', data[country].male, lines);
-  updateLine('female', data[country].female, lines);
-  updateArea(data[COUNTRIES.firstCountry.country], data[COUNTRIES.secondCountry.country], 'male')
-  updateArea(data[COUNTRIES.firstCountry.country], data[COUNTRIES.secondCountry.country], 'female')
-
+  updateLine(data[country].male, 'male', lines);
+  updateLine(data[country].female, 'female', lines);
+  updateArea(data[COUNTRIES.firstCountry], data[COUNTRIES.secondCountry], 'male')
+  updateArea(data[COUNTRIES.firstCountry], data[COUNTRIES.secondCountry], 'female')
 }
 
-function updateChecked(data, gender, checked, lines) {
-  var maleLines = d3.selectAll('.' + gender);
-  var femaleLines = d3.selectAll('.' + gender);
-  var maleArea = d3.select('.area' + gender);
-  var femaleArea = d3.select('.area' + gender);
-  console.log(maleLines, checked)
+function updateChecked(gender, checked) {
+  var updateLines = d3.selectAll('.' + gender);
+  var updateArea = d3.select('.area' + gender);
+  var visibility = checked ? 'visible' : 'hidden';
 
+  updateLines.attr('visibility', visibility);
+  updateArea.attr('visibility', visibility);
+}
 
-  if (gender === 'male') {
-    if (checked) {
-      //drawGender(gender, data);
-      maleLines.attr('visibility', 'visible');
-      maleArea.attr('visibility', 'visible')
-    } else {
-      // maleLines.remove();
-      maleLines.attr('visibility', 'hidden');
-      maleArea.attr('visibility', 'hidden');
-    }
-  } else {
-    if (checked) {
-      // drawGender(gender, data);
-      femaleLines.attr('visibility', 'visible');
-      femaleArea.attr('visibility', 'visible');
-    } else {
-      femaleLines.attr('visibility', 'hidden');
-      femaleArea.attr('visibility', 'hidden');
-      // femaleLines.remove();
-      // femaleArea.remove();
-    }
-  }
+function drawChart(data) {
+  var firstCountryData = data[COUNTRIES.firstCountry]
+  var secondCountryData = data[COUNTRIES.secondCountry]
+
+  drawLine('male', firstCountryData, 'firstCountry');
+  drawLine('female', firstCountryData, 'firstCountry');
+  drawLine('male', secondCountryData, 'secondCountry');
+  drawLine('female', secondCountryData, 'secondCountry');
+  drawArea(firstCountryData, secondCountryData, 'male');
+  drawArea(firstCountryData, secondCountryData, 'female');
 }
 
 function drawLine(gender, data, lines) {
+  data = data[gender];
   var chart = d3.select('#display');
-  console.log(data);
   var strokeColor = gender === 'male' ? 'blue' : 'red';
 
-  var line = chart.append('path')
+  chart.append('path')
     .attr('d', svgLine(data))
     .attr('stroke-width', 2)
     .attr('stroke', strokeColor)
     .attr('fill', 'none')
     .attr('transform', 'translate(' + MARGINS.left + ')')
     .attr('class', gender + ' ' + lines)
-
-  return line;
 }
 
-function drawGender(gender, data) {
-  var firstCountryData = data[COUNTRIES.firstCountry.country];
-  var secondCountryData = data[COUNTRIES.secondCountry.country];
-
-  drawLine(gender, firstCountryData[gender], 'firstCountry');
-  drawLine(gender, secondCountryData[gender], 'secondCountry');
-  drawArea(firstCountryData, secondCountryData, gender)
-}
-
-function drawCountry(data, lines) {
-
-  drawLine('female', data.female, lines);
-  drawLine('male', data.male, lines);
-}
-
-function drawArea(dataOne, dataTwo, gender) {
+function parseAreaData(dataOne, dataTwo, gender) {
   var areaData = [];
-  var color = gender === 'male' ? 'rgba(80, 80, 255, .5)' : 'rgba(255, 80, 80, .5)';
   var y0;
   var y1;
   var meanOne;
@@ -200,6 +161,12 @@ function drawArea(dataOne, dataTwo, gender) {
       x: dataOne[gender][i].year
     })
   }
+  return areaData;
+}
+
+function drawArea(dataOne, dataTwo, gender) {
+  var areaData = parseAreaData(dataOne, dataTwo, gender);
+  var color = gender === 'male' ? 'rgba(80, 80, 255, .5)' : 'rgba(255, 80, 80, .5)';
 
   d3.select('#display')
     .append('g')
@@ -207,55 +174,15 @@ function drawArea(dataOne, dataTwo, gender) {
     .append('path')
     .attr('d', area(areaData))
     .attr('fill', color)
-    .attr('class', 'area' + gender)
-
+    .attr('class', 'area' + gender);
 }
 
 function updateArea(dataOne, dataTwo, gender) {
-  var areaData = [];
-  var color = gender === 'male' ? 'rgba(80, 80, 255, .5)' : 'rgba(255, 80, 80, .5)';
-  var y0;
-  var y1;
-  var meanOne;
-  var meanTwo;
-  console.log('updateArea', dataOne, dataTwo)
-  for (var i = 0; i < dataOne[gender].length; i++) {
-    meanOne = dataOne[gender][i].mean;
-    meanTwo = dataTwo[gender][i].mean;
+  var areaData = parseAreaData(dataOne, dataTwo, gender);
 
-    y0 = Math.min(meanOne, meanTwo);
-    y1 = Math.max(meanOne, meanTwo);
-
-    areaData.push({
-      y0: y0,
-      y1: y1,
-      x: dataOne[gender][i].year
-    })
-  }
-  console.log('IN UPDATE', areaData)
-  var area1 = d3.select('.area' + gender);
-    console.log(area1)
-
-    area1.transition()
+  d3.select('.area' + gender)
+    .transition()
     .attr('d', area(areaData))
     .duration(750)
     .ease('easeOutQuint');
-}
-
-function testCircle() {
-  var counter = 0;
-
-  chart.append('circle')
-      .attr('r', 10)
-      .attr('cy', 0)
-      .attr('cx', 200);
-
-  setInterval(function() {
-    chart.select('circle')
-      .transition()
-      .duration(1000)
-      .attr('transform', 'translate(0, ' + (HEIGHT) + ')');
-
-    counter += 10;
-  }, 1000);
 }
