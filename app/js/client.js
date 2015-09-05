@@ -11,17 +11,13 @@ var MARGINS = {
     left: 50
   };
 var COUNTRIES = {
-  mainCountry: {
+  firstCountry: {
     country: 'Afghanistan',
     colors: ['red', 'blue']
   },
-  overlayOne: {
+  secondCountry: {
     country: 'Afghanistan',
     colors: ['purple', 'green']
-  },
-  overlayTwo: {
-    country: 'Afghanistan',
-    colors: ['yellow', 'brown']
   }
 };
 
@@ -42,6 +38,19 @@ var svgLine = d3.svg.line()
       .y(function(d) {
           return y(d.mean);
         });
+
+var area = d3.svg.area()
+      .x(function(d) {
+        console.log(d.x)
+        return x(new Date(d.x, 0, 1));
+      })
+      .y0(function(d) {
+        return y(d.y0);
+      })
+      .y1(function(d) {
+        console.log(d.y1)
+        return y(d.y1);
+      })
 
 var xAxis = d3.svg.axis()
       .scale(x)
@@ -79,10 +88,8 @@ chart.append('g').call(yAxis)
 
 var menus = d3.selectAll('select');
 var checkboxes = d3.selectAll('input[type=checkbox]');
-console.log(checkboxes);
 
 d3.csv('./data.csv', function(data) {
-  var lines;
 
   data = parseData(data, '20+ yrs, age-standardized', 'obese');
 
@@ -93,17 +100,15 @@ d3.csv('./data.csv', function(data) {
     .attr('value', function(d) { return d; })
     .text(function(d) {return d; });
 
-  drawCountry(data, COUNTRIES.mainCountry, 'mainCountry');
-  drawCountry(data, COUNTRIES.overlayOne, 'overlayOne');
-  drawCountry(data, COUNTRIES.overlayTwo, 'overlayTwo');
+  drawCountry(data[COUNTRIES.firstCountry.country], 'firstCountry');
+  drawCountry(data[COUNTRIES.secondCountry.country], 'secondCountry');
 
   menus.on('change', function() {
     updateChart(data, this.value, this.id);
   });
 
   checkboxes.on('change', function() {
-    updateChecked(data, COUNTRIES[this.name], this.value,
-      this.checked, this.name);
+    updateChecked(data, this.value, this.checked, this.name);
   });
 });
 
@@ -145,73 +150,102 @@ function parseData(dataset, ageGroup, metric) {
   return sorted;
 }
 
+function updateLine(gender, data, lines) {
+  var line = d3.select('.' + gender + '.' + lines)
+    line.transition()
+    .attr('d', svgLine(data))
+    .attr('class', gender + ' ' + lines)
+    .duration(750)
+    .ease('easeOutQuint');
+}
+
 function updateChart(data, country, lines) {
-  //TODO constants module? don't like tweaking global
-
   country = country.replace(/[ -,]/g, '');
-  var prevCountry = COUNTRIES[lines].country;
-  var maleLine = d3.select('.male-' + prevCountry + lines);
-  var femaleLine = d3.select('.female-' + prevCountry + lines);
+  data = data[country];
 
-  maleLine.transition()
-    .attr('d', svgLine(data[country].male))
-    .attr('class', 'male-' + country + lines)
-    .duration(750)
-    .ease('easeOutQuint');
-
-  femaleLine.transition()
-    .attr('d', svgLine(data[country].female))
-    .attr('class', 'female-' + country + lines)
-    .duration(750)
-    .ease('easeOutQuint');
+  updateLine('male', data.male, lines);
+  updateLine('female', data.female, lines);
 
   COUNTRIES[lines].country = country;
 }
 
-function updateChecked(data, country, gender, checked, lines) {
-  var countryName = country.country;
-  var colors = country.colors;
-  console.log('IN UPDATE CHECKED', country);
-
-  var maleLine = d3.select('.male-' + countryName + lines);
-  var femaleLine = d3.select('.female-' + countryName + lines);
+function updateChecked(data, gender, checked, lines) {
+  var maleLines = d3.selectAll('.' + gender);
+  var femaleLines = d3.selectAll('.' + gender);
   if (gender === 'male') {
-    if (checked && !maleLine.node()) {
-      drawLine(data, country, 'male', colors[0], lines);
+    if (checked && !maleLines.node()) {
+      drawGender(gender, data);
     } else {
-      maleLine.remove();
+      maleLines.remove();
     }
   } else {
-    if (checked && !femaleLine.node()) {
-      drawLine(data, country, 'female', colors[1], lines);
+    if (checked && !femaleLines.node()) {
+      drawGender(gender, data);
     } else {
-      femaleLine.remove();
+      femaleLines.remove();
     }
   }
 }
 
-function drawLine(data, country, gender, strokeColor, lines) {
-  var countryName = country.country.replace(/[ -,]/g, '');
+function drawLine(gender, data, lines) {
   var chart = d3.select('#display');
+  var strokeColor = gender === 'male' ? 'blue' : 'red';
 
   var line = chart.append('path')
-    .attr('d', svgLine(data[countryName][gender]))
+    .attr('d', svgLine(data))
     .attr('stroke-width', 2)
     .attr('stroke', strokeColor)
     .attr('fill', 'none')
     .attr('transform', 'translate(' + MARGINS.left + ')')
-    .attr('class', gender + '-' + countryName + lines);
+    .attr('class', gender + ' ' + lines)
 
   return line;
 }
 
-function drawCountry(data, country, lines) {
-  console.log(country);
-  var countryName = country.country;
-  var colors = country.colors;
-  console.log(country, colors);
-  drawLine(data, country, 'female', colors[1], lines);
-  drawLine(data, country, 'male', colors[0], lines);
+function drawGender(gender, data) {
+  var firstCountryData = data[COUNTRIES.firstCountry.country];
+  var secondCountryData = data[COUNTRIES.secondCountry.country];
+
+  drawLine(gender, firstCountryData[gender], 'firstCountry');
+  drawLine(gender, secondCountryData[gender], 'secondCountry');
+  drawArea(firstCountryData, secondCountryData, gender)
+}
+
+function drawCountry(data, lines) {
+
+  drawLine('female', data.female, lines);
+  drawLine('male', data.male, lines);
+}
+
+function drawArea(dataOne, dataTwo, gender) {
+  var areaData = [];
+  var color = gender === 'male' ? 'blue' : 'red';
+  var y0;
+  var y1;
+  var meanOne;
+  var meanTwo;
+
+  for (var i = 0; i < dataOne[gender].length; i++) {
+    meanOne = dataOne[gender][i].mean;
+    meanTwo = dataTwo[gender][i].mean;
+
+    y0 = Math.min(meanOne, meanTwo);
+    y1 = Math.max(meanOne, meanTwo);
+
+    areaData.push({
+      y0: y0,
+      y1: y1,
+      x: dataOne[gender][i].year
+    })
+  }
+
+  d3.select('#display')
+    .append('g')
+    .attr('transform', 'translate(' + MARGINS.left + ', 0)')
+    .append('path')
+    .attr('d', area(areaData))
+    .attr('fill', color)
+
 }
 
 function testCircle() {
@@ -230,15 +264,4 @@ function testCircle() {
 
     counter += 10;
   }, 1000);
-}
-
-function generateYears(start, end) {
-  var range = end - start;
-  var years = [];
-
-  for (var i = 0; i < end; i++) {
-    years.push(start + i);
-  }
-
-  return years;
 }
