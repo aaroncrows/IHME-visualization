@@ -69,7 +69,13 @@ chart.append('g').call(xAxis)
 
 chart.append('g').call(yAxis)
     .attr('class', 'axis')
-    .attr('transform', 'translate(' + MARGINS.left + ', ' + MARGINS.top + ')');
+    .attr('transform', 'translate(' + MARGINS.left + ', ' + MARGINS.top + ')')
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr('dy', 7)
+    .style("text-anchor", "end")
+    .text("Mean");;
 
 var menus = d3.selectAll('select');
 var checkboxes = d3.selectAll('input[type=checkbox]');
