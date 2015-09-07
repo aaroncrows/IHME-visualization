@@ -1,6 +1,7 @@
 'use strict';
 
 var d3 = require('d3');
+var dTip = require('d3-tip');
 
 module.exports = exports = {};
 
@@ -22,6 +23,13 @@ var y = d3.scale.linear()
       .domain([0, 0.7]);
 
 //svg elements
+var tip = dTip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return "<strong>Frequency:</strong> <span style='color:red'>" + d.mean + "</span>";
+  })
+
 exports.line = d3.svg.line()
       .x(function(d) {
           return x(new Date(d.year, 0, 1));
@@ -74,7 +82,10 @@ exports.init = function() {
       .attr('dy', 7)
       .style("text-anchor", "end")
       .text("Mean");
+
+  chart.call(tip);
 }
 
 exports.x = x;
 exports.y = y;
+exports.tip = tip;

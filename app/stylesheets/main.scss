@@ -32,6 +32,9 @@ h1 {
 svg {
   border: 1px solid $border-color;
   background-color: #FFF;
+  line:hover {
+    stroke: white;
+  }
 }
 
 #content_wrapper {

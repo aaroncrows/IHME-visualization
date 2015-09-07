@@ -2,13 +2,14 @@
 //constants
 var d3 = require('d3');
 
-var init = require('./d3-init');
-var x = init.x;
-var y = init.y
-var svgLine = init.line;
-var area = init.area;
+var config = require('./d3-init');
+var x = config.x;
+var y = config.y
+var svgLine = config.line;
+var area = config.area;
+var tip = config.tip;
 
-init.init();
+config.init();
 
 var HEIGHT = 600;
 var WIDTH = 1000;
@@ -87,10 +88,34 @@ function parseData(dataset, ageGroup, metric) {
 }
 
 function updateLine(data, gender, lines) {
-  var line = d3.select('.' + gender + '.' + lines)
+  var className = '.' + gender + '.' + lines;
+  var lastY = +data[data.length - 1].mean;
+  var countryName = data[0].location_name;
+  var line = d3.select('path' + className)
+  var text = d3.select("text" + className); 
+  var circles = d3.selectAll('g' + className + ' circle');
+  var textWidth = text.node().getComputedTextLength();
+  console.log(textWidth);
+  console.log(circles);
     line.transition()
     .attr('d', svgLine(data))
-    .attr('class', gender + ' ' + lines)
+    .duration(750)
+    .ease('easeOutQuint');
+
+  text.transition()
+    .attr("transform", "translate(" + (WIDTH + 3 - textWidth) + "," + y(lastY + .015) + ")")
+    .text(countryName)
+    .duration(750)
+    .ease('easeOutQuint');
+
+  circles.data(data)
+    .transition()
+    .attr('cy', function(d) {
+      return y(d.mean);
+    })
+    .attr('cx', function(d) {
+      return x(new Date(d.year, 0, 1))
+    })
     .duration(750)
     .ease('easeOutQuint');
 }
@@ -129,16 +154,46 @@ function drawChart(data) {
 
 function drawLine(gender, data, lines) {
   data = data[gender];
-  var chart = d3.select('#display');
   var strokeColor = gender === 'male' ? 'blue' : 'red';
+  var lastY = +data[data.length - 1].mean;
+  var countryName = data[0].location_name;
+  var className = gender + ' ' + lines;
+  var group = d3.select('svg')
+    .append('g')
+    .attr('transform', 'translate(' + MARGINS.left + ')')
+    .attr('class', className)
 
-  chart.append('path')
+  group.append('path')
     .attr('d', svgLine(data))
     .attr('stroke-width', 2)
     .attr('stroke', strokeColor)
     .attr('fill', 'none')
-    .attr('transform', 'translate(' + MARGINS.left + ')')
     .attr('class', gender + ' ' + lines)
+
+    console.log(y(data[data.length - 1].mean));
+  group.append("text")
+    .attr("transform", "translate(" + (WIDTH+3) + "," + y(lastY + .015) + ")")
+    .attr("dy", ".35em")
+    .attr("text-anchor", "start")
+    .attr('class', className)
+    .style("fill", strokeColor)
+    .text(countryName);
+
+  group.selectAll('circle' + '.' + gender + '.' + lines)
+    .data(data)
+    .enter()
+    .append('circle')
+    //.attr('class', className)
+    .attr('cy', function(d) {
+      return y(d.mean);
+    })
+    .attr('cx', function(d) {
+      return x(new Date(d.year, 0, 1))
+    })
+    .attr('r', 4)
+    .attr('fill', strokeColor)
+    .on('mouseover', tip.show)
+    .on('mouseout', tip.hide);
 }
 
 function parseAreaData(dataOne, dataTwo, gender) {
