@@ -1,7 +1,6 @@
 'use strict';
 //constants
 var d3 = require('d3');
-
 var config = require('./d3-init');
 var x = config.x;
 var y = config.y
@@ -21,7 +20,7 @@ var MARGINS = {
   };
 var COUNTRIES = {
   firstCountry: 'Afghanistan',
-  secondCountry: 'UnitedStates'
+  secondCountry: 'Afghanistan'
 };
 
 var menus = d3.selectAll('select');
@@ -95,8 +94,7 @@ function updateLine(data, gender, lines) {
   var text = d3.select("text" + className); 
   var circles = d3.selectAll('g' + className + ' circle');
   var textWidth = text.node().getComputedTextLength();
-  console.log(textWidth);
-  console.log(circles);
+
     line.transition()
     .attr('d', svgLine(data))
     .duration(750)
@@ -134,8 +132,11 @@ function updateChart(data, country, lines) {
 function updateChecked(gender, checked) {
   var updateLines = d3.selectAll('.' + gender);
   var updateArea = d3.select('.area' + gender);
+  var label = d3.select('label.' + gender);
   var visibility = checked ? 'visible' : 'hidden';
+  var className = checked ? gender + ' checked' : gender;
 
+  label.attr('class', className);
   updateLines.attr('visibility', visibility);
   updateArea.attr('visibility', visibility);
 }
@@ -170,7 +171,6 @@ function drawLine(gender, data, lines) {
     .attr('fill', 'none')
     .attr('class', gender + ' ' + lines)
 
-    console.log(y(data[data.length - 1].mean));
   group.append("text")
     .attr("transform", "translate(" + (WIDTH+3) + "," + y(lastY + .015) + ")")
     .attr("dy", ".35em")
@@ -183,7 +183,6 @@ function drawLine(gender, data, lines) {
     .data(data)
     .enter()
     .append('circle')
-    //.attr('class', className)
     .attr('cy', function(d) {
       return y(d.mean);
     })
