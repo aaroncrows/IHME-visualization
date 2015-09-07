@@ -4,8 +4,8 @@ var d3 = require('d3');
 
 module.exports = exports = {};
 
-var HEIGHT = 500;
-var WIDTH = 800;
+var HEIGHT = 600;
+var WIDTH = 1100;
 var MARGINS = {
     top: 20,
     right: 20,

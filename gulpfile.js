@@ -4,14 +4,15 @@ var jshint = require('gulp-jshint');
 var stylish = require('jshint-stylish');
 var del = require('del');
 var copy = require('gulp-copy');
-//var sass = require('gulp-sass');
+var sass = require('gulp-sass');
 //var neat = require('node-neat').includePaths;
 var webpack = require('gulp-webpack');
 
 var paths = {
   js: './app/**/*.js',
-  files: ['./app/index.html', './app/data/*.csv'],
-  sass: './app/stylesheets/**/*.scss',
+  html: './app/index.html',
+  data: './app/data/*.csv',
+  sass: './app/stylesheets/*.scss',
   client: './app/js/client.js'
 };
 
@@ -31,17 +32,17 @@ gulp.task('clean', function(cb) {
 });
 
 gulp.task('copy', ['clean'], function() {
-  return gulp.src(paths.files)
+  return gulp.src([paths.html, paths.data])
     .pipe(gulp.dest('./build'))
 });
 
-// gulp.task('sass', ['clean'], function() {
-//   return gulp.src(paths.sass)
-//     .pipe(sass({
-//       includePaths: ['sass']//.concat(neat)
-//     }))
-//     .pipe(gulp.dest('./build/css'));
-// });
+gulp.task('sass', ['clean'], function() {
+  return gulp.src(paths.sass)
+    .pipe(sass({
+      includePaths: ['sass']//.concat(neat)
+    }))
+    .pipe(gulp.dest('./build/css'));
+});
 
 gulp.task('webpack', ['clean'], function() {
   return gulp.src(paths.client)
@@ -50,8 +51,8 @@ gulp.task('webpack', ['clean'], function() {
 });
 
 gulp.task('watch', function() {
-  gulp.watch([paths.js, paths.sass], ['build'])
+  gulp.watch([paths.js, paths.sass, paths.html], ['build'])
 })
 
-gulp.task('default', ['jscs', 'jshint', 'clean', 'webpack', 'copy']);
-gulp.task('build', ['clean', 'copy', 'webpack']);
+gulp.task('default', ['jscs', 'jshint', 'clean', 'sass', 'webpack', 'copy']);
+gulp.task('build', ['clean', 'copy', 'sass', 'webpack']);

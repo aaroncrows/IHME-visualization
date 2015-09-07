@@ -15,32 +15,39 @@
     fill: none;
     stroke-color: red;
   }
-  svg {
-    background-color: pink;
-    border: 1px solid blue;
-  }
 
   .axis path,
   .axis line{
     shape-rendering: crispEdges;
     stroke: #000;
     fill: none;
+    stroke-width: 1px;
   }
 </style>
+<link rel="stylesheet" href="./css/main.css">
 <body>
-  <div id="chart">
-    
-  </div>
-  <div id="control_wrapper"></div>
-    <div id="controls">
-      <select id="firstCountry"></select>
+  <div id='content_wrapper'>
+    <header>
+      <h1>Comparison of Adult Obesity Between Countries by Gender</h1>
+    </header>
+    <div id="chart"></div>
 
-    </div>
-    <div id="controls2">
-      <select id="secondCountry"></select>
-    </div>
-    <input type="checkbox" id="male-check" data-country="mainCountry" name="mainCountry" value="male" checked>male</input>
-      <input type="checkbox" id="female-check" value="female" name="mainCountry" checked>female</input>
+    <nav id="control_wrapper">
+      <div id="controls">
+        <select id="firstCountry"></select>
+      </div>
+      <div id="controls2">
+        <select id="secondCountry"></select>
+      </div>
+      <div class="checkbutton">
+        <label for="male-check">Male</label>
+        <input type="checkbox" id="male-check" name="male" value="male" checked/>
+      </div>
+      <div class="checkbutton">
+        <label for="female-check"> Female</label>
+        <input type="checkbox" id="female-check" value="female" name="female" checked/>
+      </div>
+    </nav>
   </div>
 </body>
 <script src="./bundle.js"></script>

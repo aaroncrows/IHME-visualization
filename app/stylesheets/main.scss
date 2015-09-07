@@ -1,0 +1,80 @@
+
+
+@import url(https://fonts.googleapis.com/css?family=Source+Code+Pro:400,600|Libre+Baskerville);
+
+$heading-font: 'Source Code Pro';
+$content-font: 'Libre Baskerville', serif;
+
+$background-color: rgb(210, 210, 255);
+$content-color: rgb(0, 81, 153);
+$border-color: rgb(0, 0, 255);
+
+$color: blue;
+
+@mixin noselect() {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+body {
+  background-color: $background-color;
+}
+
+h1 {
+  font-family: $heading-font;
+  color: $content-color;
+}
+
+svg {
+  border: 1px solid $border-color;
+  background-color: #FFF;
+}
+
+#content_wrapper {
+  width: 1100px;
+  margin: 0 auto; 
+}
+
+nav {
+  div {
+    display: inline-block;
+  }
+
+  select {
+    width: 300px;
+    border: 1px solid $border-color;
+
+  }
+
+  label {
+    background-color: $content-color;
+    border: 1px solid $border-color;
+    border-radius: 15px;
+    padding: 2px 15px;
+    margin-left: 10px;
+  }
+
+  input:checked + label {
+    color: white;
+  }
+
+  select, option, label {
+    font-size: 20px;
+    font-family: $content-font;
+    @include noselect();
+  }
+
+  input[type='checkbox'] {
+    visibility: hidden;
+    z-index: -10;
+    margin-left: -25px;
+  }
+}
+
+header {
+  text-align: center;
+}

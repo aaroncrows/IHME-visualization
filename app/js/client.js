@@ -10,8 +10,8 @@ var area = init.area;
 
 init.init();
 
-var HEIGHT = 500;
-var WIDTH = 800;
+var HEIGHT = 600;
+var WIDTH = 1000;
 var MARGINS = {
     top: 20,
     right: 20,
