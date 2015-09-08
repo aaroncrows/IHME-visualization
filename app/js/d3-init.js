@@ -27,7 +27,7 @@ var tip = dTip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
   .html(function(d) {
-    return "<strong>Frequency:</strong> <span style='color:red'>" + d.mean + "</span>";
+    return "<strong>Mean Prevalence:</strong><span style='color:red'>" + d.mean + "</span><div class='arrow-down'></div>";
   })
 
 exports.line = d3.svg.line()
@@ -81,7 +81,7 @@ exports.init = function() {
       .attr("y", 6)
       .attr('dy', 7)
       .style("text-anchor", "end")
-      .text("Mean");
+      .text("Mean Prevalence as Percentage of Population");
 
   chart.call(tip);
 }

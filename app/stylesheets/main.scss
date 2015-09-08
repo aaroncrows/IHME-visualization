@@ -1,11 +1,12 @@
 
 
-@import url(https://fonts.googleapis.com/css?family=Source+Code+Pro:400,600|Libre+Baskerville);
+@import url(https://fonts.googleapis.com/css?family=Raleway:400,600|Libre+Baskerville);
 
-$heading-font: 'Source Code Pro';
+$heading-font: 'Raleway';
 $content-font: 'Libre Baskerville', serif;
 
 $background-color: rgb(210, 210, 255);
+$background-color-transparent: rgba(210, 210, 255, 0.5);
 $content-color: rgb(0, 81, 153);
 $border-color: rgb(0, 0, 255);
 
@@ -26,7 +27,9 @@ body {
 
 h1 {
   font-family: $heading-font;
+  font-size: 39px;
   color: $content-color;
+  margin-bottom: 5px;
 }
 
 svg {
@@ -36,6 +39,39 @@ svg {
     stroke: white;
   }
 }
+
+.d3-tip {
+  span, strong {
+    background-color: $background-color-transparent;
+    display: block;
+  }
+  span {
+    border-radius: 0 0 3px 3px;
+    margin-bottom: -5px;
+    padding: 0 3px 3px 3px;
+  }
+  strong {
+    border-radius: 3px 3px 0 0;
+    padding: 3px 3px 0 3px;
+    // margin-bottom: -5px;
+  }
+  font-family: $content-font;
+  font-size: 10px;
+  text-align: center;
+  padding: 4px;
+  border-radius: 3px;
+  .arrow-down {
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    
+    border-top: 5px solid $background-color-transparent;
+    display: inline-block;
+    margin: 0 auto;
+  }
+}
+
 
 #content_wrapper {
   width: 1100px;
@@ -92,6 +128,13 @@ nav {
   }
 
 }
+  .axis path,
+  .axis line{
+    shape-rendering: crispEdges;
+    stroke: #000;
+    fill: none;
+    stroke-width: 1px;
+  }
 
 header {
   text-align: center;
