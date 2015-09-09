@@ -14,15 +14,15 @@ var MARGINS = {
     left: 50
   };
 
+//scales
 var x = d3.time.scale()
           .range([0, (WIDTH - MARGINS.right - MARGINS.left)])
           .domain([new Date(1990, 0, 1), new Date(2013, 0, 1)]);
 
 var y = d3.scale.linear()
       .range([(HEIGHT - MARGINS.bottom - MARGINS.top), 0])
-      .domain([0, 0.7]);
+      .domain([0, (0.75 * 100)]);
 
-//svg elements
 var tip = dTip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
@@ -48,6 +48,24 @@ exports.area = d3.svg.area()
       .y1(function(d) {
         return y(d.y1);
       })
+
+exports.countries = (function() {
+  var countryObj = {
+    firstCountry: 'Afghanistan',
+    secondCountry: 'Afghanistan'
+  };
+
+  return {
+    get: function(lineGroup) {
+      return countryObj[lineGroup];
+    },
+    set: function(country, lineGroup) {
+      countryObj[lineGroup] = country;
+    }
+  };
+})();
+
+//draws basic chart
 exports.init = function() {
   var xAxis = d3.svg.axis()
         .scale(x)
@@ -83,6 +101,7 @@ exports.init = function() {
       .style("text-anchor", "end")
       .text("Mean Prevalence as Percentage of Population");
 
+  //add tool tips
   chart.call(tip);
 }
 

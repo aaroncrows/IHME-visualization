@@ -1,12 +1,13 @@
 'use strict';
-//constants
+
 var d3 = require('d3');
-var config = require('./d3-init');
+var config = require('./d3-config');
 var x = config.x;
 var y = config.y
 var svgLine = config.line;
 var area = config.area;
 var tip = config.tip;
+var countries = config.countries;
 
 config.init();
 
@@ -18,10 +19,6 @@ var MARGINS = {
     bottom: 40,
     left: 50
   };
-var COUNTRIES = {
-  firstCountry: 'Afghanistan',
-  secondCountry: 'Afghanistan'
-};
 
 var menus = d3.selectAll('select');
 var checkboxes = d3.selectAll('input[type=checkbox]');
@@ -30,6 +27,7 @@ d3.csv('./data.csv', function(data) {
 
   data = parseData(data, '20+ yrs, age-standardized', 'obese');
 
+  //populate selects with country names
   menus.selectAll('option')
     .data(data.countryNames)
     .enter()
@@ -55,14 +53,16 @@ function parseData(dataset, ageGroup, metric) {
   var maxMean = 0;
   var classFriendlyLocation;
 
-  ageGroup = ageGroup || 'age_group';
   sorted.countryNames = [];
 
   for (var i = 0; i < dataset.length; i++) {
     var curr = dataset[i];
     var currLocation = curr.location_name;
     var currAgeGroup = curr.age_group;
-    classFriendlyLocation = currLocation.replace(/[ -,]/g, '');
+
+    classFriendlyLocation = condenseLocationName(currLocation);
+    //convert mean decimal to percentage
+    curr.mean *= 100;
 
     if (!sorted[classFriendlyLocation]) sorted[classFriendlyLocation] = {
       location_name: currLocation,
@@ -86,47 +86,16 @@ function parseData(dataset, ageGroup, metric) {
   return sorted;
 }
 
-function updateLine(data, gender, lines) {
-  var className = '.' + gender + '.' + lines;
-  var lastY = +data[data.length - 1].mean;
-  var countryName = data[0].location_name;
-  var line = d3.select('path' + className)
-  var text = d3.select("text" + className); 
-  var circles = d3.selectAll('g' + className + ' circle');
-  var textWidth = text.node().getComputedTextLength();
+function updateChart(data, country, lineGroup) {
+  country = condenseLocationName(country);
+  countries.set(country, lineGroup);
+  var firstCountryName = countries.get('firstCountry');
+  var secondCountryName = countries.get('secondCountry');
 
-    line.transition()
-    .attr('d', svgLine(data))
-    .duration(750)
-    .ease('easeOutQuint');
-
-  text.transition()
-    .attr("transform", "translate(" + (WIDTH + 3 - textWidth) + "," + y(lastY + .015) + ")")
-    .text(countryName)
-    .duration(750)
-    .ease('easeOutQuint');
-
-  circles.data(data)
-    .transition()
-    .attr('cy', function(d) {
-      return y(d.mean);
-    })
-    .attr('cx', function(d) {
-      return x(new Date(d.year, 0, 1))
-    })
-    .duration(750)
-    .ease('easeOutQuint');
-}
-
-
-function updateChart(data, country, lines) {
-  country = country.replace(/[ -,]/g, '');
-  COUNTRIES[lines] = country;
-
-  updateLine(data[country].male, 'male', lines);
-  updateLine(data[country].female, 'female', lines);
-  updateArea(data[COUNTRIES.firstCountry], data[COUNTRIES.secondCountry], 'male')
-  updateArea(data[COUNTRIES.firstCountry], data[COUNTRIES.secondCountry], 'female')
+  updateLine(data[country].male, 'male', lineGroup);
+  updateLine(data[country].female, 'female', lineGroup);
+  updateArea(data[firstCountryName], data[secondCountryName], 'male')
+  updateArea(data[firstCountryName], data[secondCountryName], 'female')
 }
 
 function updateChecked(gender, checked) {
@@ -142,23 +111,29 @@ function updateChecked(gender, checked) {
 }
 
 function drawChart(data) {
-  var firstCountryData = data[COUNTRIES.firstCountry]
-  var secondCountryData = data[COUNTRIES.secondCountry]
+  var firstCountryData = data[countries.get('firstCountry')]
+  var secondCountryData = data[countries.get('secondCountry')]
 
-  drawLine('male', firstCountryData, 'firstCountry');
-  drawLine('female', firstCountryData, 'firstCountry');
-  drawLine('male', secondCountryData, 'secondCountry');
-  drawLine('female', secondCountryData, 'secondCountry');
+  drawLine(firstCountryData, 'male', 'firstCountry');
+  drawLine(firstCountryData, 'female', 'firstCountry');
+  drawLine(secondCountryData, 'male', 'secondCountry');
+  drawLine(secondCountryData, 'female', 'secondCountry');
   drawArea(firstCountryData, secondCountryData, 'male');
   drawArea(firstCountryData, secondCountryData, 'female');
 }
 
-function drawLine(gender, data, lines) {
+/**
+*Draws a line in a group with the given gender and line group as a class. Adds chart dots.
+*@param {Object} country data object
+*@param {String} gender
+*@param {String} line grouping the line belongs to
+**/
+
+function drawLine(data, gender, lineGroup) {
   data = data[gender];
-  var strokeColor = gender === 'male' ? 'blue' : 'red';
   var lastY = +data[data.length - 1].mean;
   var countryName = data[0].location_name;
-  var className = gender + ' ' + lines;
+  var className = gender + ' ' + lineGroup;
   var group = d3.select('svg')
     .append('g')
     .attr('transform', 'translate(' + MARGINS.left + ')')
@@ -167,19 +142,17 @@ function drawLine(gender, data, lines) {
   group.append('path')
     .attr('d', svgLine(data))
     .attr('stroke-width', 2)
-    .attr('stroke', strokeColor)
     .attr('fill', 'none')
-    .attr('class', gender + ' ' + lines)
+    .attr('class', gender + ' ' + lineGroup)
 
   group.append("text")
-    .attr("transform", "translate(" + (WIDTH+3) + "," + y(lastY + .015) + ")")
+    .attr("transform", "translate(" + (WIDTH - 50) + "," + y(lastY + 1.5) + ")")
     .attr("dy", ".35em")
     .attr("text-anchor", "start")
     .attr('class', className)
-    .style("fill", strokeColor)
     .text(countryName);
 
-  group.selectAll('circle' + '.' + gender + '.' + lines)
+  group.selectAll('circle' + '.' + gender + '.' + lineGroup)
     .data(data)
     .enter()
     .append('circle')
@@ -187,13 +160,53 @@ function drawLine(gender, data, lines) {
       return y(d.mean);
     })
     .attr('cx', function(d) {
-      return x(new Date(d.year, 0, 1))
+      return x(parseDate(d.year))
     })
     .attr('r', 4)
-    .attr('fill', strokeColor)
+    .attr('class', className)
     .on('mouseover', tip.show)
     .on('mouseout', tip.hide);
 }
+
+function updateLine(data, gender, lineGroup) {
+  var className = '.' + gender + '.' + lineGroup;
+  //gets last y position for text
+  var lastY = +data[data.length - 1].mean;
+  var countryName = data[0].location_name;
+  var line = d3.select('path' + className)
+  var text = d3.select("text" + className); 
+  var circles = d3.selectAll('g' + className + ' circle');
+  var textWidth = countryName.length * 7;
+
+  line.transition()
+    .attr('d', svgLine(data))
+    .duration(750)
+    .ease('easeOutQuint');
+
+  text.transition()
+    .attr("transform", "translate(" + (WIDTH - textWidth) + "," + y(lastY + 1.5) + ")")
+    .text(countryName)
+    .duration(750)
+    .ease('easeOutQuint');
+
+  circles.data(data)
+    .transition()
+    .attr('cy', function(d) {
+      return y(d.mean);
+    })
+    .attr('cx', function(d) {
+      return x(parseDate(d.year))
+    })
+    .duration(750)
+    .ease('easeOutQuint');
+}
+
+/**
+*Filters line data for svg area tool.
+*@param {Object} data used for first line
+*@param {Object} data used for second line
+*@param {String} gender
+**/
 
 function parseAreaData(dataOne, dataTwo, gender) {
   var areaData = [];
@@ -218,16 +231,21 @@ function parseAreaData(dataOne, dataTwo, gender) {
   return areaData;
 }
 
+/**
+*Draws an area between the lines of the given gender.
+*@param {Object} data used for first line
+*@param {Object} data used for second line
+*@param {String} gender
+**/
+
 function drawArea(dataOne, dataTwo, gender) {
   var areaData = parseAreaData(dataOne, dataTwo, gender);
-  var color = gender === 'male' ? 'rgba(80, 80, 255, .5)' : 'rgba(255, 80, 80, .5)';
 
   d3.select('#display')
     .append('g')
     .attr('transform', 'translate(' + MARGINS.left + ', 0)')
     .append('path')
     .attr('d', area(areaData))
-    .attr('fill', color)
     .attr('class', 'area' + gender);
 }
 
@@ -239,4 +257,12 @@ function updateArea(dataOne, dataTwo, gender) {
     .attr('d', area(areaData))
     .duration(750)
     .ease('easeOutQuint');
+}
+
+function condenseLocationName(name) {
+  return name.replace(/[ -,]/g, '')
+}
+
+function parseDate(date) {
+  return new Date(date, 0, 1)
 }

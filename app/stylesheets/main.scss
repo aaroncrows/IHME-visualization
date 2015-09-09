@@ -9,6 +9,11 @@ $background-color: rgb(210, 210, 255);
 $background-color-transparent: rgba(210, 210, 255, 0.5);
 $content-color: rgb(0, 81, 153);
 $border-color: rgb(0, 0, 255);
+$male-color:rgb(0, 0, 255);
+$female-color:rgb(255, 0, 0);
+$male-transparent: rgba(80, 80, 255, .5);
+$female-transparent: rgba(255, 80, 80, .5);
+
 
 $color: blue;
 
@@ -35,10 +40,32 @@ h1 {
 svg {
   border: 1px solid $border-color;
   background-color: #FFF;
-  line:hover {
-    stroke: white;
+}
+
+path {
+  &.areamale {
+    fill: $male-transparent;
+  }
+  &.areafemale {
+    fill: $female-transparent;
+  }
+  &.male {
+    stroke: $male-color;
+  }
+  &.female {
+    stroke: $female-color;
   }
 }
+
+circle, text {
+  &.male {
+    fill: $male-color;
+  }
+  &.female {
+    fill: $female-color;
+  }
+}
+
 
 .d3-tip {
   span, strong {
