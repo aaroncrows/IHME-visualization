@@ -27,8 +27,9 @@ var tip = dTip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
   .html(function(d) {
-    return "<strong>Mean Prevalence:</strong><span style='color:red'>" + d.mean + "</span><div class='arrow-down'></div>";
-  })
+    return '<strong>Mean Prevalence:</strong><span style="color:red">' +
+      d.mean + '</span><div class="arrow-down"></div>';
+  });
 
 exports.line = d3.svg.line()
       .x(function(d) {
@@ -47,7 +48,7 @@ exports.area = d3.svg.area()
       })
       .y1(function(d) {
         return y(d.y1);
-      })
+      });
 
 exports.countries = (function() {
   var countryObj = {
@@ -94,16 +95,16 @@ exports.init = function() {
   chart.append('g').call(yAxis)
       .attr('class', 'axis')
       .attr('transform', 'translate(' + MARGINS.left + ', ' + MARGINS.top + ')')
-      .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 6)
       .attr('dy', 7)
-      .style("text-anchor", "end")
-      .text("Mean Prevalence as Percentage of Population");
+      .style('text-anchor', 'end')
+      .text('Mean Prevalence as Percentage of Population');
 
   //add tool tips
   chart.call(tip);
-}
+};
 
 exports.x = x;
 exports.y = y;

@@ -3,7 +3,7 @@
 var d3 = require('d3');
 var config = require('./d3-config');
 var x = config.x;
-var y = config.y
+var y = config.y;
 var svgLine = config.line;
 var area = config.area;
 var tip = config.tip;
@@ -35,7 +35,7 @@ d3.csv('./data.csv', function(data) {
     .attr('value', function(d) { return d; })
     .text(function(d) {return d; });
 
-  drawChart(data)
+  drawChart(data);
 
   menus.on('change', function() {
     updateChart(data, this.value, this.id);
@@ -94,8 +94,8 @@ function updateChart(data, country, lineGroup) {
 
   updateLine(data[country].male, 'male', lineGroup);
   updateLine(data[country].female, 'female', lineGroup);
-  updateArea(data[firstCountryName], data[secondCountryName], 'male')
-  updateArea(data[firstCountryName], data[secondCountryName], 'female')
+  updateArea(data[firstCountryName], data[secondCountryName], 'male');
+  updateArea(data[firstCountryName], data[secondCountryName], 'female');
 }
 
 function updateChecked(gender, checked) {
@@ -111,8 +111,8 @@ function updateChecked(gender, checked) {
 }
 
 function drawChart(data) {
-  var firstCountryData = data[countries.get('firstCountry')]
-  var secondCountryData = data[countries.get('secondCountry')]
+  var firstCountryData = data[countries.get('firstCountry')];
+  var secondCountryData = data[countries.get('secondCountry')];
 
   drawLine(firstCountryData, 'male', 'firstCountry');
   drawLine(firstCountryData, 'female', 'firstCountry');
@@ -137,18 +137,18 @@ function drawLine(data, gender, lineGroup) {
   var group = d3.select('svg')
     .append('g')
     .attr('transform', 'translate(' + MARGINS.left + ')')
-    .attr('class', className)
+    .attr('class', className);
 
   group.append('path')
     .attr('d', svgLine(data))
     .attr('stroke-width', 2)
     .attr('fill', 'none')
-    .attr('class', gender + ' ' + lineGroup)
+    .attr('class', gender + ' ' + lineGroup);
 
-  group.append("text")
-    .attr("transform", "translate(" + (WIDTH - 50) + "," + y(lastY + 1.5) + ")")
-    .attr("dy", ".35em")
-    .attr("text-anchor", "start")
+  group.append('text')
+    .attr('transform', 'translate(' + (WIDTH - 50) + ',' + y(lastY + 1.5) + ')')
+    .attr('dy', '.35em')
+    .attr('text-anchor', 'start')
     .attr('class', className)
     .text(countryName);
 
@@ -160,7 +160,7 @@ function drawLine(data, gender, lineGroup) {
       return y(d.mean);
     })
     .attr('cx', function(d) {
-      return x(parseDate(d.year))
+      return x(parseDate(d.year));
     })
     .attr('r', 4)
     .attr('class', className)
@@ -173,8 +173,8 @@ function updateLine(data, gender, lineGroup) {
   //gets last y position for text
   var lastY = +data[data.length - 1].mean;
   var countryName = data[0].location_name;
-  var line = d3.select('path' + className)
-  var text = d3.select("text" + className); 
+  var line = d3.select('path' + className);
+  var text = d3.select('text' + className);
   var circles = d3.selectAll('g' + className + ' circle');
   var textWidth = countryName.length * 7;
 
@@ -184,7 +184,8 @@ function updateLine(data, gender, lineGroup) {
     .ease('easeOutQuint');
 
   text.transition()
-    .attr("transform", "translate(" + (WIDTH - textWidth) + "," + y(lastY + 1.5) + ")")
+    .attr('transform', 'translate(' + (WIDTH - textWidth) +
+      ',' + y(lastY + 1.5) + ')')
     .text(countryName)
     .duration(750)
     .ease('easeOutQuint');
@@ -195,7 +196,7 @@ function updateLine(data, gender, lineGroup) {
       return y(d.mean);
     })
     .attr('cx', function(d) {
-      return x(parseDate(d.year))
+      return x(parseDate(d.year));
     })
     .duration(750)
     .ease('easeOutQuint');
@@ -226,7 +227,7 @@ function parseAreaData(dataOne, dataTwo, gender) {
       y0: y0,
       y1: y1,
       x: dataOne[gender][i].year
-    })
+    });
   }
   return areaData;
 }
@@ -260,9 +261,9 @@ function updateArea(dataOne, dataTwo, gender) {
 }
 
 function condenseLocationName(name) {
-  return name.replace(/[ -,]/g, '')
+  return name.replace(/[ -,]/g, '');
 }
 
 function parseDate(date) {
-  return new Date(date, 0, 1)
+  return new Date(date, 0, 1);
 }
