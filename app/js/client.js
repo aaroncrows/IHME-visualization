@@ -20,11 +20,6 @@ var MARGINS = {
     left: 50
   };
 
-var COUNTRIES = {
-  firstCountry: 'Afghanistan',
-  secondCountry: 'UnitedStates'
-}
-
 var menus = d3.selectAll('select');
 var checkboxes = d3.selectAll('input[type=checkbox]');
 
@@ -39,7 +34,7 @@ d3.csv('./data.csv', function(data) {
     .attr('value', function(d) { return d; })
     .text(function(d) {return d; });
 
-  updateChart(data)
+  updateChart(data);
 
   menus.on('change', function() {
     var country = parseLocation(this.value);
@@ -51,6 +46,14 @@ d3.csv('./data.csv', function(data) {
     updateChecked(this.value, this.checked);
   });
 });
+
+/**
+*Maps incoming csv data to object by country name
+*{Array} data coming from .csv file
+*{String} used to filter results by age_group
+*{String} used to filter results by metric
+*returns Object
+**/
 
 function parseData(dataset, ageGroup, metric) {
   var sorted = {};
@@ -67,6 +70,7 @@ function parseData(dataset, ageGroup, metric) {
     curr = dataset[i];
     currLocation = curr.location_name;
     currAgeGroup = curr.age_group;
+    //adjust mean from decimal to percentage
     curr.mean *= 100;
     location = parseLocation(currLocation);
 
@@ -102,6 +106,7 @@ function updateChecked(gender, checked) {
   updateLines.attr('visibility', visibility);
 }
 
+//D3 Update pattern
 function updateChart(data) {
   var firstCountryData = data[countries.get('firstCountry')];
   var secondCountryData = data[countries.get('secondCountry')];
@@ -116,41 +121,43 @@ function updateChart(data) {
   var groups;
   var areas;
 
-  svg = d3.select('#display')
+  svg = d3.select('#display');
 
+  //svg group updates
   groups = svg.selectAll('.pathGroup')
     .data(allCountryData, function(d, i) {
-        return d[0].sex + i;
+      return d[0].sex + i;
     });
 
-    groups.transition()
-      .attr('class', function(d, i) {
+  groups.transition()
+    .attr('class', function(d, i) {
       return 'pathGroup ' + d[0].sex + i;
-    })
+    });
 
-    groups.enter()
+  groups.enter()
     .append('g')
     .attr('class', function(d, i) {
       return 'pathGroup ' + d[0].sex + i;
     })
-    .attr('transform', 'translate(' + MARGINS.left + ')')
+    .attr('transform', 'translate(' + MARGINS.left + ')');
 
+  //svg area updates
   areas = svg.selectAll('.area')
-      .data(areaData, function(d) {
-        return d.gender;
-      })
+    .data(areaData, function(d) {
+      return d.gender;
+    });
 
-    areas.enter()
-      .append('path')
-      .attr('transform', 'translate(' + MARGINS.left + ', 0)')
-      .attr('d', function(d) {
-        return area(d.data);
-      })
-      .attr('class', function(d) {
-        return 'area ' + d.gender;
-      });
+  areas.enter()
+    .append('path')
+    .attr('transform', 'translate(' + MARGINS.left + ', 0)')
+    .attr('d', function(d) {
+      return area(d.data);
+    })
+    .attr('class', function(d) {
+      return 'area ' + d.gender;
+    });
 
-    areas.transition()
+  areas.transition()
     .attr('d', function(d) {
       return area(d.data);
     })
@@ -167,10 +174,11 @@ function updateChart(data) {
     var circles;
     var text;
 
+    //svg path updates
     paths = currentGroup.selectAll('path')
       .data(d, function(d, i) {
         return groupKey;
-    });
+      });
 
     paths.transition()
       .attr('d', svgLine(d))
@@ -186,6 +194,7 @@ function updateChart(data) {
       .attr('stroke-width', 2)
       .attr('fill', 'none');
 
+    //svg circles updates
     circles = currentGroup.selectAll('circle')
       .data(d, function(d, i) {
         return gender + i;
@@ -197,7 +206,7 @@ function updateChart(data) {
         return y(d.mean);
       })
       .attr('cx', function(d) {
-        return x(new Date(d.year, 0, 1))
+        return x(parseDate(d.year));
       })
       .attr('r', 4)
       .attr('class', function(d) {
@@ -206,61 +215,71 @@ function updateChart(data) {
       .on('mouseover', tip.show)
       .on('mouseout', tip.hide);
 
-      circles.transition()
-        .attr('cy', function(d) {
-          return y(d.mean);
-        })
-        .attr('cx', function(d) {
-          return x(new Date(d.year, 0, 1))
-        })
-        .duration(750)
-        .ease('easeOutQuint');
+    circles.transition()
+      .attr('cy', function(d) {
+        return y(d.mean);
+      })
+      .attr('cx', function(d) {
+        return x(parseDate(d.year));
+      })
+      .duration(750)
+      .ease('easeOutQuint');
 
+    //svg text updates
     text = currentGroup.selectAll('text')
       .data(d, function(d) {
         return groupKey;
       });
 
     text.transition()
-      .attr("transform", function(d) {
-        return "translate(" + (WIDTH - textOffsetX) + "," + y(textOffsetY) + ")"
+      .attr('transform', function(d) {
+        return 'translate(' + (WIDTH - textOffsetX) +
+          ',' + y(textOffsetY) + ')';
       })
       .text(function(d) {
-        return d.location_name
+        return d.location_name;
       })
       .duration(750)
       .ease('easeOutQuint');
 
     text.enter()
       .append('text')
-      .attr("transform", function(d) {
-        return "translate(" + (WIDTH - textOffsetX) + "," + y(textOffsetY) + ")"
+      .attr('transform', function(d) {
+        return 'translate(' + (WIDTH - textOffsetX) +
+          ',' + y(textOffsetY) + ')';
       })
-      .attr("dy", ".35em")
-      .attr("text-anchor", "start")
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'start')
       .attr('class', function(d, i) {
         return gender;
       })
       .text(function(d) {
-        return d.location_name
+        return d.location_name;
       });
 
-  })
+  });
 }
+
+/**
+*Takes in two country data objects and parses it down to the data for the svg.area tool
+*@param {Object} country data object
+*@param {Object} country data object
+*returns Array
+*/
 
 function updateAreaData(firstCountry, secondCountry) {
   var areaData = [];
   var genderData = [
     [firstCountry.male, secondCountry.male],
     [firstCountry.female, secondCountry.female]
-  ]
+  ];
 
   return genderData.map(function(d, i) {
     return {
       gender: i ? 'female' : 'male',
       data: parseAreaData(d)
-    }
-  })
+    };
+  });
 
   function parseAreaData(data) {
     var areaData = [];
@@ -280,7 +299,7 @@ function updateAreaData(firstCountry, secondCountry) {
         y0: y0,
         y1: y1,
         x: data[0][i].year
-      })
+      });
     }
     return areaData;
   }

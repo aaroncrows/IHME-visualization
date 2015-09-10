@@ -14,9 +14,6 @@ $female-color:rgb(255, 0, 0);
 $male-transparent: rgba(80, 80, 255, .5);
 $female-transparent: rgba(255, 80, 80, .5);
 
-
-$color: blue;
-
 @mixin noselect() {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
