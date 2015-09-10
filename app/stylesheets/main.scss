@@ -43,10 +43,10 @@ svg {
 }
 
 path {
-  &.areamale {
+  &.area.male {
     fill: $male-transparent;
   }
-  &.areafemale {
+  &.area.female {
     fill: $female-transparent;
   }
   &.male {
